@@ -67,6 +67,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateDisplayWithData(dailyData: List<CovidData>) {
         // Create a new SparkAdapter with the data
+        val adapter = CovidDataSparkAdapter(dailyData)
+        binding.sparkView.adapter = adapter
+
         // Update radio buttons to select the positive cases and max time by default
         binding.apply {
             radioButtonPositive.isChecked = true
