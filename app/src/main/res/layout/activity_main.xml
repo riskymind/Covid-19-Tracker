@@ -37,6 +37,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:gravity="center"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -66,7 +67,9 @@
         android:id="@+id/sparkView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        android:background="@color/colorBgShady"
         app:layout_constraintBottom_toTopOf="@+id/radioGroupTimeSelection"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -78,7 +81,9 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/tvMetricLabel"
+        android:layout_marginTop="16dp"
+        android:background="@color/colorBgShady"
+        app:layout_constraintBottom_toTopOf="@+id/tickerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -113,11 +118,12 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:text="May 30 2020" />
 
-    <TextView
-        android:id="@+id/tvMetricLabel"
+    <com.robinhood.ticker.TickerView
+        android:id="@+id/tickerView"
         android:layout_width="0dp"
         android:layout_height="80dp"
         android:gravity="center"
+        android:layout_marginEnd="16dp"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

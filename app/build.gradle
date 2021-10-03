@@ -65,4 +65,7 @@ dependencies {
 
     // Nice Spinner
     implementation 'com.github.arcadefire:nice-spinner:1.4.4'
+
+    // robinhood ticker
+    implementation 'com.robinhood.ticker:ticker:2.0.2'
 }
