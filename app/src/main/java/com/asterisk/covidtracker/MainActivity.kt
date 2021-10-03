@@ -2,7 +2,10 @@ package com.asterisk.covidtracker
 
 import android.os.Bundle
 import android.util.Log
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.asterisk.covidtracker.Constants.ALL_STATES
 import com.asterisk.covidtracker.Constants.BASE_URL
 import com.asterisk.covidtracker.data.CovidData
 import com.asterisk.covidtracker.data.CovidService
@@ -18,7 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-
+    private lateinit var currentlyShownData: List<CovidData>
     private lateinit var adapter: CovidDataSparkAdapter
     private lateinit var perStateDailyData: Map<String, List<CovidData>>
     private lateinit var binding: ActivityMainBinding
@@ -54,7 +57,8 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 perStateDailyData = covidService.getStatesData().reversed().groupBy { it.state }
-                Log.d(TAG, "${perStateDailyData.entries} from success state data")
+                // Update spinner with state names
+                updateSpinnerWithStateData(perStateDailyData.keys)
             } catch (e: Exception) {
                 Log.d(TAG, "${e.message} from error per state data")
                 e.printStackTrace()
@@ -63,6 +67,21 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun updateSpinnerWithStateData(stateNames: Set<String>) {
+        val stateAbbreviationList = stateNames.toMutableList()
+        stateAbbreviationList.sort()
+        stateAbbreviationList.add(0, ALL_STATES)
+
+        binding.spinnerSelect.apply {
+            attachDataSource(stateAbbreviationList)
+            setOnSpinnerItemSelectedListener { parent, _, position, _ ->
+                val selectedState = parent.getItemAtPosition(position) as String
+                val selectedData = perStateDailyData[selectedState] ?: nationalDailyData
+                updateDisplayWithData(selectedData)
+            }
+        }
     }
 
     private fun setUpEventListeners() {
@@ -75,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         }
         //Response to radio button event selection
         binding.radioGroupTimeSelection.setOnCheckedChangeListener { _, checkedId ->
-            adapter.daysAgo = when(checkedId) {
+            adapter.daysAgo = when (checkedId) {
                 R.id.radioButtonWeek -> TimeScale.WEEK
                 R.id.radioButtonMonth -> TimeScale.MONTH
                 else -> TimeScale.MAX
@@ -84,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.radioGroupMetricSelection.setOnCheckedChangeListener { _, checkedId ->
-            when(checkedId) {
+            when (checkedId) {
                 R.id.radioButtonPositive -> updateDisplayMetric(Metric.POSITIVE)
                 R.id.radioButtonNegative -> updateDisplayMetric(Metric.NEGATIVE)
                 R.id.radioButtonDeath -> updateDisplayMetric(Metric.DEATH)
@@ -93,11 +112,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDisplayMetric(metric: Metric) {
+        // Update the color of the chart
+        val colorRes = when (metric) {
+            Metric.NEGATIVE -> R.color.negative_case
+            Metric.POSITIVE -> R.color.positive_case
+            Metric.DEATH -> R.color.death_case
+        }
+
+        @ColorInt val colorInt = ContextCompat.getColor(this, colorRes)
+        binding.sparkView.lineColor = colorInt
+        binding.tvMetricLabel.setTextColor(colorInt)
+
+
+        // Update the metric on the adapter
         adapter.metric = metric
         adapter.notifyDataSetChanged()
+
+        // Reset the number an data shown in the bottom textView
+        updateInfoForDate(currentlyShownData.last())
     }
 
     private fun updateDisplayWithData(dailyData: List<CovidData>) {
+        currentlyShownData = dailyData
+
         // Create a new SparkAdapter with the data
         adapter = CovidDataSparkAdapter(dailyData)
         binding.sparkView.adapter = adapter
@@ -108,7 +145,7 @@ class MainActivity : AppCompatActivity() {
             radioButtonMax.isChecked = true
         }
         // Display metric for the most recent date
-        updateInfoForDate(dailyData.last())
+        updateDisplayMetric(Metric.POSITIVE)
     }
 
     private fun updateInfoForDate(covidData: CovidData) {
